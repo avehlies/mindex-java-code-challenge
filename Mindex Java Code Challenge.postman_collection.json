@@ -599,6 +599,149 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Compensation",
+			"item": [
+				{
+					"name": "Create new Employee",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.unset(\"employeeId\");"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Successful POST request\", function () {",
+									"    pm.expect(pm.response.code).to.eql(200);",
+									"});",
+									"",
+									"pm.test(\"Check return and save employeeId\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.firstName).to.eql(\"Andrew\");",
+									"    pm.collectionVariables.set(\"employeeId\", jsonData.employeeId);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"Andrew\",\n    \"lastName\": \"Vehlies\",\n    \"position\": \"Software Developer\",\n    \"department\": \"Engineering\",\n    \"directReports\": null\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/employee",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"employee"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add compensation",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"employee\": {\n        \"employeeId\": \"{{employeeId}}\"\n    },\n    \"effectiveDate\": \"2022-01-01\",\n    \"salary\": 80000.00\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/compensation",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"compensation"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add next compensation",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"employee\": {\n        \"employeeId\": \"{{employeeId}}\"\n    },\n    \"effectiveDate\": \"2022-01-15\",\n    \"salary\": 80000.01\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/compensation",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"compensation"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Compensations for Employee",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/compensation/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"compensation",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{employeeId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"event": [
@@ -649,6 +792,10 @@
 		},
 		{
 			"key": "head1id",
+			"value": ""
+		},
+		{
+			"key": "employeeId",
 			"value": ""
 		}
 	]
