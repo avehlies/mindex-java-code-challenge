@@ -1,6 +1,7 @@
 package com.mindex.challenge.data;
 
 import java.util.List;
+import java.util.Objects;
 
 public class Employee {
     private String employeeId;
@@ -17,47 +18,53 @@ public class Employee {
         return employeeId;
     }
 
-    public void setEmployeeId(String employeeId) {
+    public Employee setEmployeeId(String employeeId) {
         this.employeeId = employeeId;
+        return this;
     }
 
     public String getFirstName() {
         return firstName;
     }
 
-    public void setFirstName(String firstName) {
+    public Employee setFirstName(String firstName) {
         this.firstName = firstName;
+        return this;
     }
 
     public String getLastName() {
         return lastName;
     }
 
-    public void setLastName(String lastName) {
+    public Employee setLastName(String lastName) {
         this.lastName = lastName;
+        return this;
     }
 
     public String getPosition() {
         return position;
     }
 
-    public void setPosition(String position) {
+    public Employee setPosition(String position) {
         this.position = position;
+        return this;
     }
 
     public String getDepartment() {
         return department;
     }
 
-    public void setDepartment(String department) {
+    public Employee setDepartment(String department) {
         this.department = department;
+        return this;
     }
 
     public List<Employee> getDirectReports() {
         return directReports;
     }
 
-    public void setDirectReports(List<Employee> directReports) {
+    public Employee setDirectReports(List<Employee> directReports) {
         this.directReports = directReports;
+        return this;
     }
 }

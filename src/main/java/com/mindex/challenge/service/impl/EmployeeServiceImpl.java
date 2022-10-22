@@ -76,8 +76,8 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .map(Employee::getEmployeeId)
                 .collect(Collectors.toList());
 
-        // It's way more efficient to get all the direct employees with a list of IDs instead of doing one request
-        // at a time with a single ID
+        // It's more efficient to get all the direct employees with a list of IDs instead of doing one query
+        // at a time with a single ID.
         List<Employee> directReports = employeeRepository.findByEmployeeIdIn(employeeReportIds);
         employee.setDirectReports(directReports);
 

@@ -1,86 +1,202 @@
 package com.mindex.challenge.service.impl;
 
+import com.mindex.challenge.TestUtilities.ObjectHelper;
+import com.mindex.challenge.dao.EmployeeRepository;
 import com.mindex.challenge.data.Employee;
+import com.mindex.challenge.data.ReportingStructure;
 import com.mindex.challenge.service.EmployeeService;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.junit.runners.BlockJUnit4ClassRunner;
+import org.mockito.Mockito;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import java.util.*;
+import java.util.stream.Collectors;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+import static com.mindex.challenge.TestUtilities.ChallengeAssertions.assertEmployeeEquivalence;
+import static com.mindex.challenge.TestUtilities.ObjectHelper.newEmployee;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.*;
+
+
+@RunWith(BlockJUnit4ClassRunner.class)
 public class EmployeeServiceImplTest {
 
-    private String employeeUrl;
-    private String employeeIdUrl;
+    private final EmployeeRepository employeeRepository = Mockito.mock(EmployeeRepository.class);
+    private final EmployeeService employeeService = new EmployeeServiceImpl(
+            employeeRepository
+    );
 
-    @Autowired
-    private EmployeeService employeeService;
+    @Test
+    public void testCreate() {
+        Employee jackHughes = newEmployee(
+                UUID.randomUUID().toString(),
+                "Jack",
+                "Hughes",
+                "Players",
+                "Center",
+                null
+        );
 
-    @LocalServerPort
-    private int port;
+        List<Employee> lindyRuffDirectReports = new ArrayList<>();
+        lindyRuffDirectReports.add(jackHughes);
 
-    @Autowired
-    private TestRestTemplate restTemplate;
+        Employee lindyRuff = newEmployee(
+                null,
+                "Lindy",
+                "Ruff",
+                "Coaching",
+                "Head Coach",
+                lindyRuffDirectReports
+        );
 
-    @Before
-    public void setup() {
-        employeeUrl = "http://localhost:" + port + "/employee";
-        employeeIdUrl = "http://localhost:" + port + "/employee/{id}";
+        Employee result = employeeService.create(lindyRuff);
+        assertEmployeeEquivalence(lindyRuff, result);
+        assertNotNull(result.getEmployeeId());
+
+        // Verify that we're calling Employee repository with an Employee
+        // that now does not have a null employeeId
+        verify(employeeRepository, times(1))
+                .insert(argThat((Employee employee) -> employee.getEmployeeId() != null));
+
+        verifyNoMoreInteractions(employeeRepository);
     }
 
     @Test
-    public void testCreateReadUpdate() {
-        Employee testEmployee = new Employee();
-        testEmployee.setFirstName("John");
-        testEmployee.setLastName("Doe");
-        testEmployee.setDepartment("Engineering");
-        testEmployee.setPosition("Developer");
+    public void testReadSuccess() {
+        String id = UUID.randomUUID().toString();
+        Employee nicoHischier = newEmployee(
+                id,
+                "Nico",
+                "Hischier",
+                "Players",
+                "Center",
+                null
+        );
 
-        // Create checks
-        Employee createdEmployee = restTemplate.postForEntity(employeeUrl, testEmployee, Employee.class).getBody();
+        when(employeeRepository.findByEmployeeId(id))
+                .thenReturn(nicoHischier);
 
-        assertNotNull(createdEmployee.getEmployeeId());
-        assertEmployeeEquivalence(testEmployee, createdEmployee);
+        Employee result = employeeService.read(id);
 
+        assertEquals(nicoHischier, result);
 
-        // Read checks
-        Employee readEmployee = restTemplate.getForEntity(employeeIdUrl, Employee.class, createdEmployee.getEmployeeId()).getBody();
-        assertEquals(createdEmployee.getEmployeeId(), readEmployee.getEmployeeId());
-        assertEmployeeEquivalence(createdEmployee, readEmployee);
+        verify(employeeRepository, times(1))
+                .findByEmployeeId(id);
 
-
-        // Update checks
-        readEmployee.setPosition("Development Manager");
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        Employee updatedEmployee =
-                restTemplate.exchange(employeeIdUrl,
-                        HttpMethod.PUT,
-                        new HttpEntity<Employee>(readEmployee, headers),
-                        Employee.class,
-                        readEmployee.getEmployeeId()).getBody();
-
-        assertEmployeeEquivalence(readEmployee, updatedEmployee);
+        verifyNoMoreInteractions(employeeRepository);
     }
 
-    private static void assertEmployeeEquivalence(Employee expected, Employee actual) {
-        assertEquals(expected.getFirstName(), actual.getFirstName());
-        assertEquals(expected.getLastName(), actual.getLastName());
-        assertEquals(expected.getDepartment(), actual.getDepartment());
-        assertEquals(expected.getPosition(), actual.getPosition());
+    @Test
+    public void testReadFailure() {
+        String id = UUID.randomUUID().toString();
+
+        when(employeeRepository.findByEmployeeId(id))
+                .thenReturn(null);
+
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            employeeService.read(id);
+        });
+
+        assertTrue(exception.getMessage().contains("Invalid employeeId: " + id));
+    }
+
+    @Test
+    public void testUpdate() {
+        Employee damonSeverson = newEmployee(
+                UUID.randomUUID().toString(),
+                "Damon",
+                "Severson",
+                "Players",
+                "Defense",
+                null
+        );
+
+        employeeService.update(damonSeverson);
+
+        verify(employeeRepository, times(1))
+                .save(damonSeverson);
+    }
+
+    @Test
+    public void testGetReportingStructureById() {
+        Map<String, Employee> employeeMap = provideEmployees();
+        setUpReportingStructureMocks(employeeMap);
+
+        ReportingStructure ceoResult = employeeService.getReportingStructureById(employeeMap.get("ceo").getEmployeeId());
+        assertNotNull(ceoResult);
+        assertEmployeeEquivalence(employeeMap.get("ceo"), ceoResult.getEmployee());
+        assertEquals(10, ceoResult.getNumberOfReports());
+
+        ReportingStructure cfoResult = employeeService.getReportingStructureById(employeeMap.get("cfo").getEmployeeId());
+        assertEmployeeEquivalence(employeeMap.get("cfo"), cfoResult.getEmployee());
+        assertEquals(3, cfoResult.getNumberOfReports());
+
+        ReportingStructure principalDevResult = employeeService.getReportingStructureById(employeeMap.get("principalDev").getEmployeeId());
+        assertEmployeeEquivalence(employeeMap.get("principalDev"), principalDevResult.getEmployee());
+        assertEquals(1, principalDevResult.getNumberOfReports());
+    }
+
+    private void setUpReportingStructureMocks(Map<String, Employee> employeeMap) {
+        when(employeeRepository.findByEmployeeId(anyString()))
+                .thenAnswer(invocationOnMock -> {
+                    String id = invocationOnMock.getArgument(0);
+                    return employeeMap.get(id);
+                });
+
+        // when calling employeeRepository with a list of IDs, return the list of appropriate Employees
+        when(employeeRepository.findByEmployeeIdIn(anyList()))
+                .thenAnswer(invocationOnMock -> {
+                    List<String> ids = invocationOnMock.getArgument(0);
+                    return ids.stream()
+                            .map(employeeMap::get)
+                            .collect(Collectors.toList());
+                });
+    }
+
+    /**
+     * Reporting Hierarchy:
+     *  * CEO
+     *  * * CTO
+     *  * * * Senior Dev Manager
+     *  * * * * Dev Manager
+     *  * * * * * Dev One
+     *  * * * * Principal Developer
+     *  * * * * * Intern
+     *  * * CFO
+     *  * * * Acct Manager 1
+     *  * * * Acct Manager 2
+     *  * * * Acct Manager 3
+     */
+    public Map<String, Employee> provideEmployees() {
+        Employee intern1 = newEmployee("intern1", "Dev", "Intern", "Development", "Intern", null);
+        Employee dev1 = newEmployee("dev1", "Dev", "One", "Development", "Senior Developer", null);
+        Employee devManager = newEmployee("devManager", "DevManager", "One", "Development", "Dev Manager", Collections.singletonList(dev1));
+        Employee principalDev = newEmployee("principalDev", "Dev", "Two", "Development", "Principal Developer", Collections.singletonList(intern1));
+        Employee seniorDevManager = newEmployee("seniorDevManager", "Senior", "DevManager", "Development", "Senior Dev Manager", Arrays.asList(devManager, principalDev));
+        Employee cto = newEmployee("cto", "CTO", "CTO", "Executives", "CTO", Collections.singletonList(seniorDevManager));
+
+        Employee acctManager1 = newEmployee("acctManager1", "AcctManager", "One", "Accounting", "Manager", null);
+        Employee acctManager2 = newEmployee("acctManager2", "AcctManager", "Two", "Accounting", "Manager", null);
+        Employee acctManager3 = newEmployee("acctManager3", "AcctManager", "Three", "Accounting", "Manager", null);
+        Employee cfo = newEmployee("cfo", "CFO", "CFO", "Executives", "CFO", Arrays.asList(acctManager1, acctManager2, acctManager3));
+
+        Employee ceo = newEmployee("ceo", "CEO", "CEO", "Executives", "CEO", Arrays.asList(cto, cfo));
+
+        Map<String, Employee> map = new HashMap<>();
+        map.put(ceo.getEmployeeId(), ceo);
+        map.put(cfo.getEmployeeId(), cfo);
+        map.put(cto.getEmployeeId(), cto);
+        map.put(acctManager1.getEmployeeId(), acctManager1);
+        map.put(acctManager2.getEmployeeId(), acctManager2);
+        map.put(acctManager3.getEmployeeId(), acctManager3);
+        map.put(seniorDevManager.getEmployeeId(), seniorDevManager);
+        map.put(principalDev.getEmployeeId(), principalDev);
+        map.put(devManager.getEmployeeId(), devManager);
+        map.put(dev1.getEmployeeId(), dev1);
+        map.put(intern1.getEmployeeId(), intern1);
+
+        return map;
     }
 }
