@@ -77,6 +77,11 @@ public class EmployeeControllerSpringTest {
 
         assertNotNull(updatedEmployee);
         assertEmployeeEquivalence(readEmployee, updatedEmployee);
+
+        Employee readEmployee2 = restTemplate.getForEntity(employeeIdUrl, Employee.class, createdEmployee.getEmployeeId()).getBody();
+        assertNotNull(readEmployee2);
+        assertEquals(updatedEmployee.getEmployeeId(), readEmployee2.getEmployeeId());
+        assertEmployeeEquivalence(updatedEmployee, readEmployee2);
     }
 
     @Test
