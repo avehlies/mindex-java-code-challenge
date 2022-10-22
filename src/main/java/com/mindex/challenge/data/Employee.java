@@ -1,9 +1,13 @@
 package com.mindex.challenge.data;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Persistent;
+
 import java.util.List;
 import java.util.Objects;
 
 public class Employee {
+    @Id
     private String employeeId;
     private String firstName;
     private String lastName;
