@@ -1,10 +1,11 @@
 package com.mindex.challenge.service.impl;
 
-import com.mindex.challenge.TestUtilities.ObjectHelper;
 import com.mindex.challenge.dao.EmployeeRepository;
 import com.mindex.challenge.data.Employee;
 import com.mindex.challenge.data.ReportingStructure;
 import com.mindex.challenge.service.EmployeeService;
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.BlockJUnit4ClassRunner;
@@ -20,7 +21,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 
-@RunWith(BlockJUnit4ClassRunner.class)
+@RunWith(JUnitParamsRunner.class)
 public class EmployeeServiceImplTest {
 
     private final EmployeeRepository employeeRepository = Mockito.mock(EmployeeRepository.class);
@@ -120,7 +121,20 @@ public class EmployeeServiceImplTest {
     }
 
     @Test
-    public void testGetReportingStructureById() {
+    @Parameters({
+            "ceo, 10",
+            "cto, 8",
+            "cfo, 3",
+            "seniorDevManager, 4",
+            "devManager, 1",
+            "dev1, 0",
+            "principalDev, 1",
+            "intern1, 0",
+            "acctManager1, 0",
+            "acctManager2, 0",
+            "acctManager3, 0"
+    })
+    public void testGetReportingStructureById(String id, int expectedNumberOfReports) {
         Map<String, Employee> employeeMap = provideEmployees();
         setUpReportingStructureMocks(employeeMap);
 
@@ -170,7 +184,7 @@ public class EmployeeServiceImplTest {
      *  * * * Acct Manager 3
      */
     public Map<String, Employee> provideEmployees() {
-        Employee intern1 = newEmployee("intern1", "Dev", "Intern", "Development", "Intern", null);
+        Employee intern1 = newEmployee("intern1", "Dev", "Intern", "Development", "Intern", Collections.emptyList());
         Employee dev1 = newEmployee("dev1", "Dev", "One", "Development", "Senior Developer", null);
         Employee devManager = newEmployee("devManager", "DevManager", "One", "Development", "Dev Manager", Collections.singletonList(dev1));
         Employee principalDev = newEmployee("principalDev", "Dev", "Two", "Development", "Principal Developer", Collections.singletonList(intern1));

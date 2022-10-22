@@ -1,6 +1,8 @@
 package com.mindex.challenge.controller;
 
+import com.mindex.challenge.TestUtilities.ObjectHelper;
 import com.mindex.challenge.data.Employee;
+import com.mindex.challenge.data.ReportingStructure;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -75,5 +77,19 @@ public class EmployeeControllerSpringTest {
 
         assertNotNull(updatedEmployee);
         assertEmployeeEquivalence(readEmployee, updatedEmployee);
+    }
+
+    @Test
+    public void testGetEmployeeReports()
+    {
+        String id = "16a596ae-edd3-4847-99fe-c4518e82c86f";
+        ReportingStructure reportingStructure =
+                restTemplate.getForEntity(employeeIdUrl + "/reports", ReportingStructure.class, id)
+                        .getBody();
+
+        Employee johnLennon = ObjectHelper.newEmployee(id, "John", "Lennon", "Engineering", "Development Manager", null);
+        assertNotNull(reportingStructure);
+        assertEmployeeEquivalence(johnLennon, reportingStructure.getEmployee());
+        assertEquals(4, reportingStructure.getNumberOfReports());
     }
 }

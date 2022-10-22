@@ -27,8 +27,12 @@ repositories {
 dependencies {
 	implementation ('org.springframework.boot:spring-boot-starter-web')
 	implementation ('org.springframework.boot:spring-boot-starter-data-mongodb')
-	testImplementation ('org.springframework.boot:spring-boot-starter-test')
 	implementation (group: 'de.bwaldvogel', name: 'mongo-java-server', version: '1.25.0')
+	testImplementation ('org.springframework.boot:spring-boot-starter-test')
+
+	// I'm including this versus JUnit's Parameterized because JUnit4's Parameterized applies to an entire file
+	// but JUnitParams can be used on only a single test method. JUnit5/Jupier's Parameterized is a bit smarter.
+	testImplementation ('pl.pragmatists:JUnitParams:1.1.1')
 }
 
 test {
