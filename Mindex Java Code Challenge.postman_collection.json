@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "a2f9906f-6339-409c-92fe-a4fc3cd0aeae",
+		"_postman_id": "ba920387-675f-481e-a60d-86625247801a",
 		"name": "Mindex Java Code Challenge",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -717,6 +717,22 @@
 				},
 				{
 					"name": "Get Compensations for Employee",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Check compensations list\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.length).to.eql(2);",
+									"    pm.expect(jsonData[0].salary).to.eql(80000.00);",
+									"    pm.expect(jsonData[1].salary).to.eql(80000.01);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [],
