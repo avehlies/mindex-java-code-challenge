@@ -1,13 +1,13 @@
 buildscript {
-	ext {
-		springBootVersion = '2.2.0.RELEASE'
-	}
-	repositories {
-		mavenCentral()
-	}
-	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-	}
+    ext {
+        springBootVersion = '2.2.0.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
 }
 
 apply plugin: 'java'
@@ -16,29 +16,30 @@ apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 
+
 group = 'com.mindex'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.8
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	implementation ('org.springframework.boot:spring-boot-starter-web')
-	implementation ('org.springframework.boot:spring-boot-starter-data-mongodb')
-	implementation (group: 'de.bwaldvogel', name: 'mongo-java-server', version: '1.25.0')
-	testImplementation ('org.springframework.boot:spring-boot-starter-test')
+    implementation('org.springframework.boot:spring-boot-starter-web')
+    implementation('org.springframework.boot:spring-boot-starter-data-mongodb')
+    implementation(group: 'de.bwaldvogel', name: 'mongo-java-server', version: '1.25.0')
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
 
-	// I'm including this versus JUnit's Parameterized because JUnit4's Parameterized applies to an entire file
-	// but JUnitParams can be used on only a single test method. JUnit5/Jupier's Parameterized is a bit smarter.
-	testImplementation ('pl.pragmatists:JUnitParams:1.1.1')
+    // I'm including this versus JUnit's Parameterized because JUnit4's Parameterized applies to an entire file
+    // but JUnitParams can be used on only a single test method. JUnit5/Jupier's Parameterized is a bit smarter.
+    testImplementation('pl.pragmatists:JUnitParams:1.1.1')
 }
 
 test {
-	finalizedBy jacocoTestReport
+    finalizedBy jacocoTestReport
 }
 
 jacocoTestReport {
-	dependsOn test
+    dependsOn test
 }
