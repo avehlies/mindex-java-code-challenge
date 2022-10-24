@@ -4,6 +4,7 @@
     Mockito is a great framework for mocking services in unit tests.
 
 2. **Add JaCoCo plugin to calculate test code coverage.**
+    Code coverage sits around 97% at time of final commit.
 
 # Thoughts
 1. The `README.md` shows that the `Employee` JSON schema has `"directReports"` as an array of strings.
@@ -36,7 +37,12 @@
     }
     ```
    `directReports` is actually an array of `Employee` objects, so I'll treat it that way.
-2. 
+
+2. I'm not sure that I like having `EmployeeService` and `CompensationService` autowired into
+    `CompensationController`. It might be better to just autowire `EmployeeService` and `CompensationService`
+    into each other using `@Lazy`, or ideally add a third service on top of them both that can delegate tasks
+    to the appropriate services. Alternatively, add the `CompensationService` methods into `EmployeeService`
+    since an `Employee` is necessary for using a `Compensation`.
 
 
 # Changes to Existing Code
@@ -53,15 +59,6 @@
     Without it, the `update` call was actually saving a new row of data. We should
     be using JPA to define the `_id` of the row.
 
-# Additions to Code
-
-1. Returning a `ReportingStructure`
-    + Add `ReportingStructure` class
-    + Add method to `EmployeeController`
-    + Add repository method to retrieve multiple `Employee`s by ID values
-    + Add service method to `EmployeeService` to get a `ReportingStructure` by employee ID
-        + Add recursive method to create a `ReportingStructure` for an `Employee` and traverse tree
-
 # Testing
 
 1. **Move `EmployeeServiceImplTest` to a controller test folder. Rename to `EmployeeControllerSpringTest`.**
@@ -72,3 +69,4 @@
 
 2. **Added `Mindex Java Code Challenge.postman_collection`**
     This Postman collection can be used to manually test creating, getting, and updating Employees.
+    Requests can be run in order to simulate creation of employees and compensations.

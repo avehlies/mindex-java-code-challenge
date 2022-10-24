@@ -25,6 +25,11 @@ public class CompensationController {
         this.employeeService = employeeService;
     }
 
+    /**
+     * Create a Compensation for an employee
+     * @param compensation the compensation
+     * @return the created compensation
+     */
     @PostMapping("/compensation")
     public Compensation create(@RequestBody Compensation compensation) {
         LOG.debug("Received compensation create request for [{}]", compensation);
@@ -39,6 +44,11 @@ public class CompensationController {
         return compensationService.create(compensation);
     }
 
+    /**
+     * Return all {@link Compensation} objects for an employee
+     * @param id the employee id
+     * @return a list of {@code Compensation}s
+     */
     @GetMapping("/compensation/{id}")
     public List<Compensation> read(@PathVariable String id) {
         LOG.debug("Received compensation create request for id [{}]", id);
